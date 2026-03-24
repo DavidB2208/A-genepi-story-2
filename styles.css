@@ -123,3 +123,7 @@ body {
   font-weight: 700;
   cursor: pointer;
 }
+.primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

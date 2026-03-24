@@ -15,6 +15,7 @@
   const pauseBtn = document.getElementById('pauseBtn');
 
   function startGame() {
+    if (!game.assetsReady) return;
     audio.init();
     ui.showOverlay('menu', false);
     ui.showOverlay('ending', false);
@@ -40,6 +41,33 @@
 
   window.AGS_Main = { toggleMute };
 
-  game.state = 'menu';
   game.run();
+
+  async function initGame() {
+    game.state = 'loading';
+    startBtn.disabled = true;
+    ui.showOverlay('loading', true);
+    ui.showOverlay('menu', false);
+    ui.updateLoading('Préparation des assets…', 0);
+
+    const report = await game.loadAssets(({ loadedCount, failedCount, total, progress }) => {
+      ui.updateLoading(`Chargement des assets (${loadedCount + failedCount}/${total})`, progress);
+    });
+
+    if (report.failedCount > 0) {
+      ui.updateLoading(`Chargement terminé avec ${report.failedCount} ressource(s) manquante(s).`, 1);
+      console.warn('[AGS] Démarrage en mode dégradé: certains visuels/sons utiliseront les fallbacks.');
+    } else {
+      ui.updateLoading('Chargement terminé.', 1);
+    }
+
+    setTimeout(() => {
+      ui.showOverlay('loading', false);
+      ui.showOverlay('menu', true);
+      startBtn.disabled = false;
+      game.state = 'menu';
+    }, 250);
+  }
+
+  initGame();
 })();

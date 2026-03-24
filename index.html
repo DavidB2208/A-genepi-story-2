@@ -31,7 +31,15 @@
       <div id="interactionHint" class="hint">Approche d'un objet.</div>
       <div id="alertBanner" class="banner"></div>
 
-      <section id="menuOverlay" class="overlay visible">
+      <section id="loadingOverlay" class="overlay visible">
+        <div class="panel small">
+          <h2>Chargement</h2>
+          <p id="loadingText">Préparation des assets…</p>
+          <p id="loadingProgress"></p>
+        </div>
+      </section>
+
+      <section id="menuOverlay" class="overlay">
         <div class="panel">
           <h2>Menu principal</h2>
           <p>Gabriel est coincé. Survis à 4 nuits en protégeant la bouteille de génépi.</p>
@@ -44,7 +52,7 @@
             <li>M : mute</li>
             <li>R : recommencer après mort</li>
           </ul>
-          <button id="startBtn" class="primary">Commencer</button>
+          <button id="startBtn" class="primary" disabled>Commencer</button>
         </div>
       </section>
 

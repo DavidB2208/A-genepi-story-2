@@ -10,6 +10,9 @@
         hudTalisman: document.getElementById('hudTalisman'),
         hint: document.getElementById('interactionHint'),
         banner: document.getElementById('alertBanner'),
+        loading: document.getElementById('loadingOverlay'),
+        loadingText: document.getElementById('loadingText'),
+        loadingProgress: document.getElementById('loadingProgress'),
         menu: document.getElementById('menuOverlay'),
         pause: document.getElementById('pauseOverlay'),
         night: document.getElementById('nightOverlay'),
@@ -50,6 +53,19 @@
     showOverlay(name, show) {
       if (!this.el[name]) return;
       this.el[name].classList.toggle('visible', show);
+    }
+
+    updateLoading(statusText, progress = null) {
+      if (this.el.loadingText) {
+        this.el.loadingText.textContent = statusText || 'Chargement...';
+      }
+      if (this.el.loadingProgress) {
+        if (typeof progress === 'number') {
+          this.el.loadingProgress.textContent = `${Math.round(progress * 100)}%`;
+        } else {
+          this.el.loadingProgress.textContent = '';
+        }
+      }
     }
 
     showNightCard(night, text) {
