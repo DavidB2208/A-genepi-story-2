@@ -840,30 +840,42 @@
       c.restore();
     }
 
-    drawSprite(key, x, y, width, height, fallback) {
+    drawSpriteCentered(ctx, img, x, y, width, height) {
+      ctx.drawImage(img, x - width / 2, y - height / 2, width, height);
+    }
+
+    drawSprite(key, x, y, width, height, fallback, debugColor = null) {
       const img = this.images[key];
       if (img) {
-        this.ctx.drawImage(img, x - width / 2, y - height / 2, width, height);
-        return;
+        this.drawSpriteCentered(this.ctx, img, x, y, width, height);
+      } else if (fallback) {
+        fallback(this.ctx);
       }
-      if (fallback) fallback(this.ctx);
+
+      if (this.showHitboxes && debugColor) {
+        this.ctx.save();
+        this.ctx.strokeStyle = debugColor;
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(x - width / 2, y - height / 2, width, height);
+        this.ctx.restore();
+      }
     }
 
     drawPlayer() {
       const c = this.ctx;
-      const size = this.player.radius * 2.8;
+      const size = 48;
       this.drawSprite('gabriel', this.player.x, this.player.y, size, size, () => {
         c.fillStyle = this.player.color;
         c.beginPath();
         c.arc(this.player.x, this.player.y, this.player.radius, 0, Math.PI * 2);
         c.fill();
-      });
+      }, '#9ed0ff');
 
       if (this.player.carryingGenepi) {
-        this.drawSprite('genepi', this.player.x + 16, this.player.y - 10, 16, 30, () => {
+        this.drawSprite('genepi', this.player.x + 16, this.player.y - 10, 22, 40, () => {
           c.fillStyle = '#8ef0ab';
           c.fillRect(this.player.x + 12, this.player.y - 8, 10, 18);
-        });
+        }, '#8ef0ab');
       }
     }
 
@@ -873,22 +885,22 @@
       if (!spot) return;
       const x = spot.x + spot.w / 2;
       const y = spot.y + spot.h / 2;
-      this.drawSprite('genepi', x, y, 18, 34, (c) => {
+      this.drawSprite('genepi', x, y, 24, 44, (c) => {
         c.fillStyle = '#8ef0ab';
         c.fillRect(x - 6, y - 11, 12, 22);
-      });
+      }, '#8ef0ab');
     }
 
     drawThreats() {
       const c = this.ctx;
       if (this.ariel.state !== 'dormant' && (this.currentRoom === 'bedroom' || this.currentRoom === 'hall')) {
-        const size = this.ariel.radius * 3;
+        const size = 56;
         this.drawSprite('brother', this.ariel.x, this.ariel.y, size, size, () => {
           c.fillStyle = '#8e79ff';
           c.beginPath();
           c.arc(this.ariel.x, this.ariel.y, this.ariel.radius, 0, Math.PI * 2);
           c.fill();
-        });
+        }, '#b7a9ff');
       }
 
       if (this.noa.state === 'manifesting' || this.noa.state === 'breaching' || this.noa.state === 'inside') {
@@ -897,20 +909,20 @@
           this.drawSprite('noa', 1090, 315, 74, 146, () => {
             c.fillStyle = 'rgba(180,255,255,0.68)';
             c.fillRect(1055, 245, 70, 140);
-          });
+          }, '#8fefff');
         }
       }
 
       if (['knocking', 'trying_handle', 'inside_hunting'].includes(this.yardena.state) && this.currentRoom === 'hall') {
         const x = this.rooms.hall.doorPoint.x + 18;
         const y = this.rooms.hall.doorPoint.y;
-        const size = this.yardena.radius * 3;
+        const size = 56;
         this.drawSprite('yardena', x, y, size, size, () => {
           c.fillStyle = '#ff9d9d';
           c.beginPath();
           c.arc(x, y, this.yardena.radius, 0, Math.PI * 2);
           c.fill();
-        });
+        }, '#ffb3b3');
       }
     }
 
