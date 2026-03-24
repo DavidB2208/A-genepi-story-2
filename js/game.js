@@ -49,6 +49,12 @@
       this.lastTime = 0;
       this.loopHandle = null;
       this.messageCooldown = 0;
+      this.showHitboxes = false;
+      this.images = {};
+      this.assetsReady = false;
+      this.loadAssets().then(() => {
+        this.assetsReady = true;
+      });
 
       this.input = { up: false, down: false, left: false, right: false, shift: false, e: false };
       this.interaction = { progress: 0, target: null };
@@ -83,6 +89,7 @@
       return {
         hall: {
           name: 'Hall',
+          bg: 'hall',
           color: '#1f2433',
           spawn: { x: 230, y: 380 },
           doors: [
@@ -101,6 +108,7 @@
         },
         bedroom: {
           name: 'Chambre de Gabriel',
+          bg: 'bedroom',
           color: '#2a2030',
           spawn: { x: 220, y: 385 },
           doors: [{ to: 'hall', x: 70, y: 315, w: 45, h: 90 }],
@@ -113,6 +121,7 @@
         },
         office: {
           name: 'Bureau',
+          bg: 'office',
           color: '#1f2e2f',
           spawn: { x: 870, y: 385 },
           doors: [{ to: 'hall', x: 70, y: 315, w: 45, h: 90 }],
@@ -124,6 +133,7 @@
         },
         salonRight: {
           name: 'Salon / Couloir droit',
+          bg: 'corridor-right',
           color: '#2d2820',
           spawn: { x: 220, y: 390 },
           doors: [{ to: 'hall', x: 70, y: 315, w: 45, h: 90 }],
@@ -132,6 +142,35 @@
           ],
         },
       };
+    }
+
+    loadAssets() {
+      const imageMap = {
+        hall: 'assets/backgrounds/hall.png',
+        bedroom: 'assets/backgrounds/bedroom.png',
+        office: 'assets/backgrounds/office.png',
+        salon: 'assets/backgrounds/salon.png',
+        'corridor-right': 'assets/backgrounds/corridor-right.png',
+        gabriel: 'assets/sprites/gabriel.png',
+        brother: 'assets/sprites/brother.png',
+        noa: 'assets/sprites/noa.png',
+        yardena: 'assets/sprites/yardena.png',
+        genepi: 'assets/sprites/genepi.png',
+      };
+
+      const entries = Object.entries(imageMap);
+      const loaders = entries.map(([key, src]) => new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve([key, img]);
+        img.onerror = () => resolve([key, null]);
+        img.src = src;
+      }));
+
+      return Promise.all(loaders).then((loaded) => {
+        loaded.forEach(([key, img]) => {
+          this.images[key] = img;
+        });
+      });
     }
 
     bindKeys() {
@@ -637,8 +676,13 @@
       ctx.clearRect(0, 0, CONFIG.size.w, CONFIG.size.h);
       ctx.translate(stressShake, stressShake);
 
-      ctx.fillStyle = room.color;
-      ctx.fillRect(0, 0, CONFIG.size.w, CONFIG.size.h);
+      const bg = this.images[room.bg];
+      if (bg) ctx.drawImage(bg, 0, 0, CONFIG.size.w, CONFIG.size.h);
+      else {
+        ctx.fillStyle = room.color;
+        ctx.fillRect(0, 0, CONFIG.size.w, CONFIG.size.h);
+      }
+
       this.drawRoomDecor(room);
       this.drawInteractables(room);
       this.drawGenepi(room);
@@ -651,9 +695,11 @@
 
     drawRoomDecor(room) {
       const c = this.ctx;
-      c.fillStyle = 'rgba(255,255,255,0.03)';
-      for (let i = 0; i < 20; i += 1) {
-        c.fillRect((i * 77) % 1280, ((i * 53) % 720), 42, 4);
+      if (!this.images[room.bg]) {
+        c.fillStyle = 'rgba(255,255,255,0.03)';
+        for (let i = 0; i < 20; i += 1) {
+          c.fillRect((i * 77) % 1280, ((i * 53) % 720), 42, 4);
+        }
       }
       c.fillStyle = 'rgba(255,255,255,0.08)';
       c.font = '20px monospace';
@@ -662,14 +708,16 @@
 
     drawInteractables(room) {
       const c = this.ctx;
-      room.interactables.forEach((i) => {
-        c.strokeStyle = 'rgba(255,255,255,0.18)';
-        c.strokeRect(i.x, i.y, i.w, i.h);
-      });
-      room.doors.forEach((d) => {
-        c.strokeStyle = 'rgba(240,220,120,0.55)';
-        c.strokeRect(d.x, d.y, d.w, d.h);
-      });
+      if (this.showHitboxes) {
+        room.interactables.forEach((i) => {
+          c.strokeStyle = 'rgba(255,255,255,0.18)';
+          c.strokeRect(i.x, i.y, i.w, i.h);
+        });
+        room.doors.forEach((d) => {
+          c.strokeStyle = 'rgba(240,220,120,0.55)';
+          c.strokeRect(d.x, d.y, d.w, d.h);
+        });
+      }
 
       if (this.currentRoom === 'hall' && !this.hasKey) {
         this.ctx.fillStyle = '#d6f4ff';
@@ -686,16 +734,30 @@
       }
     }
 
+    drawSprite(key, x, y, width, height, fallback) {
+      const img = this.images[key];
+      if (img) {
+        this.ctx.drawImage(img, x - width / 2, y - height / 2, width, height);
+        return;
+      }
+      if (fallback) fallback(this.ctx);
+    }
+
     drawPlayer() {
       const c = this.ctx;
-      c.fillStyle = this.player.color;
-      c.beginPath();
-      c.arc(this.player.x, this.player.y, this.player.radius, 0, Math.PI * 2);
-      c.fill();
+      const size = this.player.radius * 2.8;
+      this.drawSprite('gabriel', this.player.x, this.player.y, size, size, () => {
+        c.fillStyle = this.player.color;
+        c.beginPath();
+        c.arc(this.player.x, this.player.y, this.player.radius, 0, Math.PI * 2);
+        c.fill();
+      });
 
       if (this.player.carryingGenepi) {
-        c.fillStyle = '#8ef0ab';
-        c.fillRect(this.player.x + 12, this.player.y - 8, 10, 18);
+        this.drawSprite('genepi', this.player.x + 16, this.player.y - 10, 16, 30, () => {
+          c.fillStyle = '#8ef0ab';
+          c.fillRect(this.player.x + 12, this.player.y - 8, 10, 18);
+        });
       }
     }
 
@@ -703,33 +765,46 @@
       if (this.genepi.location === 'player') return;
       const spot = room.interactables.find((i) => i.type === 'genepiSpot' && i.spot === this.genepi.location);
       if (!spot) return;
-      const c = this.ctx;
-      c.fillStyle = '#8ef0ab';
-      c.fillRect(spot.x + spot.w / 2 - 6, spot.y + spot.h / 2 - 11, 12, 22);
+      const x = spot.x + spot.w / 2;
+      const y = spot.y + spot.h / 2;
+      this.drawSprite('genepi', x, y, 18, 34, (c) => {
+        c.fillStyle = '#8ef0ab';
+        c.fillRect(x - 6, y - 11, 12, 22);
+      });
     }
 
     drawThreats() {
       const c = this.ctx;
       if (this.ariel.state !== 'dormant' && (this.currentRoom === 'bedroom' || this.currentRoom === 'hall')) {
-        c.fillStyle = '#8e79ff';
-        c.beginPath();
-        c.arc(this.ariel.x, this.ariel.y, this.ariel.radius, 0, Math.PI * 2);
-        c.fill();
+        const size = this.ariel.radius * 3;
+        this.drawSprite('brother', this.ariel.x, this.ariel.y, size, size, () => {
+          c.fillStyle = '#8e79ff';
+          c.beginPath();
+          c.arc(this.ariel.x, this.ariel.y, this.ariel.radius, 0, Math.PI * 2);
+          c.fill();
+        });
       }
 
       if (this.noa.state === 'manifesting' || this.noa.state === 'breaching' || this.noa.state === 'inside') {
         if ((this.currentRoom === 'bedroom' && this.noa.targetWindow === 'bedroom') ||
             (this.currentRoom === 'office' && this.noa.targetWindow === 'office')) {
-          c.fillStyle = 'rgba(180,255,255,0.68)';
-          c.fillRect(1055, 245, 70, 140);
+          this.drawSprite('noa', 1090, 315, 74, 146, () => {
+            c.fillStyle = 'rgba(180,255,255,0.68)';
+            c.fillRect(1055, 245, 70, 140);
+          });
         }
       }
 
       if (['knocking', 'trying_handle', 'inside_hunting'].includes(this.yardena.state) && this.currentRoom === 'hall') {
-        c.fillStyle = '#ff9d9d';
-        c.beginPath();
-        c.arc(this.rooms.hall.doorPoint.x + 18, this.rooms.hall.doorPoint.y, this.yardena.radius, 0, Math.PI * 2);
-        c.fill();
+        const x = this.rooms.hall.doorPoint.x + 18;
+        const y = this.rooms.hall.doorPoint.y;
+        const size = this.yardena.radius * 3;
+        this.drawSprite('yardena', x, y, size, size, () => {
+          c.fillStyle = '#ff9d9d';
+          c.beginPath();
+          c.arc(x, y, this.yardena.radius, 0, Math.PI * 2);
+          c.fill();
+        });
       }
     }
 
