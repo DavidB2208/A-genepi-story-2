@@ -81,7 +81,7 @@
     },
     salonRight: {
       name: 'Salon / Couloir droit',
-      bg: 'corridor-right',
+      bg: 'salonRight',
       color: '#2d2820',
       spawn: { x: 640, y: 560 },
       doors: [{ id: 'doorSalonHall', to: 'hall', x: 28, y: 110, w: 195, h: 320 }],
@@ -112,6 +112,19 @@
       this.images = {};
       this.assetsReady = false;
       this.assetReport = null;
+      this.backgroundAssets = {
+        hall: 'assets/backgrounds/hall.png',
+        bedroom: 'assets/backgrounds/bedroom.png',
+        office: 'assets/backgrounds/office.png',
+        salonRight: 'assets/backgrounds/salon.png',
+      };
+      this.spriteAssets = {
+        gabriel: 'assets/sprites/gabriel.png',
+        brother: 'assets/sprites/brother.png',
+        noa: 'assets/sprites/noa.png',
+        yardena: 'assets/sprites/yardena.png',
+        genepi: 'assets/sprites/genepi.png',
+      };
 
       this.input = { up: false, down: false, left: false, right: false, shift: false, e: false };
       this.interaction = { progress: 0, target: null };
@@ -162,16 +175,8 @@
 
     async loadAssets(onProgress) {
       const imageMap = {
-        hall: 'assets/backgrounds/hall.png',
-        bedroom: 'assets/backgrounds/bedroom.png',
-        office: 'assets/backgrounds/office.png',
-        salon: 'assets/backgrounds/salon.png',
-        'corridor-right': 'assets/backgrounds/corridor-right.png',
-        gabriel: 'assets/sprites/gabriel.png',
-        brother: 'assets/sprites/brother.png',
-        noa: 'assets/sprites/noa.png',
-        yardena: 'assets/sprites/yardena.png',
-        genepi: 'assets/sprites/genepi.png',
+        ...this.backgroundAssets,
+        ...this.spriteAssets,
       };
 
       const entries = Object.entries(imageMap);
