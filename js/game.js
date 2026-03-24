@@ -32,6 +32,65 @@
     },
   };
 
+  const ROOM_LAYOUTS = {
+    hall: {
+      name: 'Hall',
+      bg: 'hall',
+      color: '#1f2433',
+      spawn: { x: 640, y: 580 },
+      doors: [
+        { id: 'doorHallSalon', to: 'salonRight', x: 58, y: 100, w: 190, h: 260 },
+        { id: 'doorHallBedroom', to: 'bedroom', x: 900, y: 95, w: 190, h: 125 },
+        { id: 'doorHallOffice', to: 'office', x: 900, y: 220, w: 190, h: 150 },
+      ],
+      interactables: [
+        { id: 'frontDoor', type: 'frontDoor', x: 490, y: 95, w: 300, h: 280, label: 'E : verrouiller la porte' },
+      ],
+      doorPoint: { x: 640, y: 270 },
+      keySpawns: [
+        { x: 360, y: 260 },
+        { x: 858, y: 360 },
+        { x: 642, y: 448 },
+      ],
+      talismanSpawn: { x: 325, y: 250 },
+    },
+    bedroom: {
+      name: 'Chambre de Gabriel',
+      bg: 'bedroom',
+      color: '#2a2030',
+      spawn: { x: 610, y: 560 },
+      doors: [{ id: 'doorBedroomHall', to: 'hall', x: 500, y: 140, w: 165, h: 215 }],
+      interactables: [
+        { id: 'bed', type: 'genepiSpot', spot: 'bed', x: 580, y: 210, w: 320, h: 240, label: 'E : poser sur le lit' },
+        { id: 'closet', type: 'genepiSpot', spot: 'closet', x: 985, y: 90, w: 245, h: 315, label: 'E : cacher dans le placard' },
+        { id: 'windowBedroom', type: 'window', windowId: 'bedroom', x: 20, y: 100, w: 320, h: 230, label: 'E : fermer la fenêtre' },
+      ],
+      arielSpawn: { x: 770, y: 330 },
+    },
+    office: {
+      name: 'Bureau',
+      bg: 'office',
+      color: '#1f2e2f',
+      spawn: { x: 620, y: 560 },
+      doors: [{ id: 'doorOfficeHall', to: 'hall', x: 920, y: 110, w: 210, h: 280 }],
+      interactables: [
+        { id: 'officeHide', type: 'genepiSpot', spot: 'office', x: 430, y: 360, w: 410, h: 190, label: 'E : cacher dans le bureau' },
+        { id: 'pc', type: 'pc', x: 360, y: 190, w: 500, h: 180, label: 'E : lancer LoL' },
+        { id: 'windowOffice', type: 'window', windowId: 'office', x: 20, y: 95, w: 300, h: 235, label: 'E : fermer la fenêtre' },
+      ],
+    },
+    salonRight: {
+      name: 'Salon / Couloir droit',
+      bg: 'corridor-right',
+      color: '#2d2820',
+      spawn: { x: 640, y: 560 },
+      doors: [{ id: 'doorSalonHall', to: 'hall', x: 28, y: 110, w: 195, h: 320 }],
+      interactables: [
+        { id: 'salonHide', type: 'genepiSpot', spot: 'salon', x: 0, y: 395, w: 185, h: 200, label: 'E : cacher dans le salon' },
+      ],
+    },
+  };
+
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -84,62 +143,21 @@
     }
 
     createRooms() {
-      return {
-        hall: {
-          name: 'Hall',
-          bg: 'hall',
-          color: '#1f2433',
-          spawn: { x: 230, y: 380 },
-          doors: [
-            { to: 'bedroom', x: 520, y: 135, w: 120, h: 40 },
-            { to: 'office', x: 520, y: 545, w: 120, h: 40 },
-            { to: 'salonRight', x: 980, y: 315, w: 45, h: 90 },
-          ],
-          interactables: [
-            { id: 'frontDoor', type: 'frontDoor', x: 74, y: 280, w: 40, h: 160, label: 'E : verrouiller la porte' },
-          ],
-          doorPoint: { x: 94, y: 360 },
-          keySpawns: [
-            { x: 280, y: 220 }, { x: 330, y: 520 }, { x: 840, y: 350 },
-          ],
-          talismanSpawn: { x: 140, y: 130 },
-        },
-        bedroom: {
-          name: 'Chambre de Gabriel',
-          bg: 'bedroom',
-          color: '#2a2030',
-          spawn: { x: 220, y: 385 },
-          doors: [{ to: 'hall', x: 70, y: 315, w: 45, h: 90 }],
-          interactables: [
-            { id: 'bed', type: 'genepiSpot', spot: 'bed', x: 480, y: 260, w: 260, h: 145, label: 'E : poser sur le lit' },
-            { id: 'closet', type: 'genepiSpot', spot: 'closet', x: 855, y: 145, w: 125, h: 230, label: 'E : cacher dans le placard' },
-            { id: 'windowBedroom', type: 'window', windowId: 'bedroom', x: 1080, y: 230, w: 55, h: 170, label: 'E : fermer la fenêtre' },
-          ],
-          arielSpawn: { x: 550, y: 325 },
-        },
-        office: {
-          name: 'Bureau',
-          bg: 'office',
-          color: '#1f2e2f',
-          spawn: { x: 870, y: 385 },
-          doors: [{ to: 'hall', x: 70, y: 315, w: 45, h: 90 }],
-          interactables: [
-            { id: 'officeHide', type: 'genepiSpot', spot: 'office', x: 235, y: 500, w: 140, h: 100, label: 'E : cacher dans le bureau' },
-            { id: 'pc', type: 'pc', x: 230, y: 180, w: 185, h: 95, label: 'E : lancer LoL' },
-            { id: 'windowOffice', type: 'window', windowId: 'office', x: 1080, y: 230, w: 55, h: 170, label: 'E : fermer la fenêtre' },
-          ],
-        },
-        salonRight: {
-          name: 'Salon / Couloir droit',
-          bg: 'corridor-right',
-          color: '#2d2820',
-          spawn: { x: 220, y: 390 },
-          doors: [{ to: 'hall', x: 70, y: 315, w: 45, h: 90 }],
-          interactables: [
-            { id: 'salonHide', type: 'genepiSpot', spot: 'salon', x: 800, y: 515, w: 190, h: 100, label: 'E : cacher dans le salon' },
-          ],
-        },
-      };
+      return Object.fromEntries(
+        Object.entries(ROOM_LAYOUTS).map(([roomId, room]) => [
+          roomId,
+          {
+            ...room,
+            spawn: { ...room.spawn },
+            doors: room.doors.map((door) => ({ ...door })),
+            interactables: room.interactables.map((interactable) => ({ ...interactable })),
+            doorPoint: room.doorPoint ? { ...room.doorPoint } : undefined,
+            keySpawns: room.keySpawns ? room.keySpawns.map((point) => ({ ...point })) : undefined,
+            talismanSpawn: room.talismanSpawn ? { ...room.talismanSpawn } : undefined,
+            arielSpawn: room.arielSpawn ? { ...room.arielSpawn } : undefined,
+          },
+        ]),
+      );
     }
 
     async loadAssets(onProgress) {
@@ -235,6 +253,10 @@
         if (k === 'p') this.togglePause();
         if (k === 'r' && this.state === 'game_over') this.restart();
         if (k === 't') this.useTalisman();
+        if (k === 'h') {
+          this.showHitboxes = !this.showHitboxes;
+          this.ui.showBanner(`Debug zones: ${this.showHitboxes ? 'ON' : 'OFF'}`, false, 1100);
+        }
       });
       window.addEventListener('keyup', (e) => set(e.key.toLowerCase(), false));
     }
@@ -677,11 +699,11 @@
     }
 
     spotToPosition(spot) {
-      if (spot === 'bed') return { x: 600, y: 335 };
-      if (spot === 'closet') return { x: 910, y: 250 };
-      if (spot === 'office') return { x: 300, y: 550 };
-      if (spot === 'salon') return { x: 870, y: 550 };
-      return { x: 600, y: 335 };
+      for (const room of Object.values(this.rooms)) {
+        const zone = room.interactables.find((interactable) => interactable.type === 'genepiSpot' && interactable.spot === spot);
+        if (zone) return { x: zone.x + zone.w / 2, y: zone.y + zone.h / 2 };
+      }
+      return { x: this.player.x, y: this.player.y };
     }
 
     genepiLabel() {
@@ -734,6 +756,7 @@
       this.drawThreats();
       this.drawPlayer();
       this.drawLighting();
+      if (this.showHitboxes) this.drawDebugLayout(room);
 
       ctx.restore();
     }
@@ -753,17 +776,6 @@
 
     drawInteractables(room) {
       const c = this.ctx;
-      if (this.showHitboxes) {
-        room.interactables.forEach((i) => {
-          c.strokeStyle = 'rgba(255,255,255,0.18)';
-          c.strokeRect(i.x, i.y, i.w, i.h);
-        });
-        room.doors.forEach((d) => {
-          c.strokeStyle = 'rgba(240,220,120,0.55)';
-          c.strokeRect(d.x, d.y, d.w, d.h);
-        });
-      }
-
       if (this.currentRoom === 'hall' && !this.hasKey) {
         this.ctx.fillStyle = '#d6f4ff';
         this.ctx.beginPath();
@@ -777,6 +789,50 @@
         this.ctx.arc(this.rooms.hall.talismanSpawn.x, this.rooms.hall.talismanSpawn.y, 9, 0, Math.PI * 2);
         this.ctx.fill();
       }
+    }
+
+    drawDebugLayout(room) {
+      const c = this.ctx;
+      c.save();
+      c.font = '14px monospace';
+      c.textBaseline = 'top';
+
+      const drawRect = (zone, color, label) => {
+        c.strokeStyle = color;
+        c.lineWidth = 2;
+        c.strokeRect(zone.x, zone.y, zone.w, zone.h);
+        c.fillStyle = 'rgba(0,0,0,0.68)';
+        c.fillRect(zone.x, zone.y - 18, Math.min(260, Math.max(110, label.length * 7)), 16);
+        c.fillStyle = color;
+        c.fillText(label, zone.x + 4, zone.y - 17);
+      };
+
+      room.doors.forEach((door, index) => {
+        drawRect(door, '#ffd86b', `door:${door.id || door.to || index}`);
+      });
+      room.interactables.forEach((interactable, index) => {
+        drawRect(interactable, '#7fe8ff', `it:${interactable.id || interactable.type || index}`);
+      });
+
+      const drawPoint = (point, label, color = '#ff8dcf') => {
+        if (!point) return;
+        c.fillStyle = color;
+        c.beginPath();
+        c.arc(point.x, point.y, 6, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = 'rgba(0,0,0,0.72)';
+        c.fillRect(point.x + 8, point.y - 12, Math.min(180, Math.max(80, label.length * 7)), 16);
+        c.fillStyle = color;
+        c.fillText(label, point.x + 11, point.y - 11);
+      };
+
+      drawPoint(room.spawn, 'spawn', '#f4a2ff');
+      drawPoint(room.arielSpawn, 'arielSpawn', '#ff9d9d');
+      drawPoint(room.doorPoint, 'doorPoint', '#ffc58d');
+      if (room.keySpawns) room.keySpawns.forEach((point, index) => drawPoint(point, `keySpawn#${index + 1}`, '#99f3ff'));
+      drawPoint(room.talismanSpawn, 'talismanSpawn', '#b4ff9b');
+
+      c.restore();
     }
 
     drawSprite(key, x, y, width, height, fallback) {
