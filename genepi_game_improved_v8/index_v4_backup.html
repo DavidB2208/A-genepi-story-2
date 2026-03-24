@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A Génépi Story — version 2D assouplie</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <section class="card brand">
+        <h1>A Génépi Story</h1>
+        <p>Version 2D assouplie : collisions revues, objets replacés pour rester accessibles, difficulté réduite, portes séparées des objets, talismans, mini inventaire et sauvegarde locale.</p>
+      </section>
+
+      <section id="menuPanel" class="card">
+        <h2>Lancer une partie</h2>
+        <p class="soft">Version plus souple : monstres moins agressifs, objets mieux placés et portes utilisables avec la génépi en main.</p>
+        <label for="nightSelect">Nuit débloquée</label>
+        <select id="nightSelect"></select>
+        <p id="menuDescription" class="soft"></p>
+        <div class="row two">
+          <button id="startBtn" class="primary">Nouvelle partie</button>
+          <button id="resumeBtn" class="secondary">Reprendre</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Options</h2>
+        <label>Volume général <span id="volumeValue">80%</span></label>
+        <input id="volumeRange" type="range" min="0" max="100" value="80">
+        <label>Luminosité <span id="brightnessValue">100%</span></label>
+        <input id="brightnessRange" type="range" min="70" max="130" value="100">
+        <div class="row two compactTop">
+          <button id="muteBtn" class="secondary">🔊 Son actif</button>
+          <button id="resetSaveBtn" class="danger">Réinitialiser save</button>
+        </div>
+      </section>
+
+      <section id="gamePanel" class="card hidden">
+        <h2>État de la partie</h2>
+        <div class="kv"><span>Nuit</span><strong id="nightLabel">—</strong></div>
+        <div class="kv"><span>Salle</span><strong id="roomLabel">—</strong></div>
+        <div class="kv"><span>Temps</span><strong id="timeLabel">—</strong></div>
+        <div class="kv"><span>Objectif</span><strong id="objectiveLabel">—</strong></div>
+        <div class="kv"><span>Génépi</span><strong id="genepiLabel">—</strong></div>
+        <div class="kv"><span>Porte d'entrée</span><strong id="doorLabel">—</strong></div>
+        <div class="kv"><span>PC</span><strong id="pcLabel">—</strong></div>
+        <div class="kv"><span>Rideaux</span><strong id="curtainLabel">—</strong></div>
+        <div class="kv"><span>Course</span><strong id="sprintLabel">—</strong></div>
+        <div class="kv"><span>Salle sanctifiée</span><strong id="safeRoomLabel">Aucune</strong></div>
+
+        <h3>Mini inventaire</h3>
+        <div id="inventoryMini" class="inventoryMini"></div>
+
+        <div class="stressWrap">
+          <div class="stressHeader"><span>Stress</span><strong id="stressValue">0%</strong></div>
+          <div class="stressTrack"><div id="stressBar" class="stressBar"></div></div>
+        </div>
+
+        <div class="interactionWrap">
+          <div class="stressHeader"><span>Interaction</span><strong id="interactionLabel">prêt</strong></div>
+          <div class="stressTrack"><div id="interactionBar" class="interactionBar"></div></div>
+        </div>
+
+        <h3>Menaces actives</h3>
+        <ul id="alertsList" class="objectives"></ul>
+        <h3>Journal / lore</h3>
+        <ul id="journalList" class="journal"></ul>
+        <p class="hint"><strong>Indice :</strong> <span id="hint">Approche-toi d'un objet pour interagir.</span></p>
+      </section>
+
+      <section class="card">
+        <h2>Contrôles</h2>
+        <ul class="controls">
+          <li><strong>WASD / flèches</strong> : se déplacer</li>
+          <li><strong>Shift</strong> : petit sprint</li>
+          <li><strong>Maintenir E</strong> : prendre / poser / lire / utiliser un objet</li>
+          <li><strong>Maintenir R</strong> : ouvrir une porte / changer de salle / verrouiller l’entrée</li>
+          <li><strong>F</strong> : utiliser le talisman sélectionné</li>
+          <li><strong>1 à 4</strong> : choisir un slot d’inventaire</li>
+          <li><strong>Tab</strong> : ouvrir la carte</li>
+          <li><strong>J</strong> : ouvrir le journal</li>
+          <li><strong>Échap</strong> : pause</li>
+          <li><strong>F1</strong> : debug</li>
+        </ul>
+      </section>
+    </aside>
+
+    <main class="gameArea">
+      <canvas id="gameCanvas" width="1280" height="720"></canvas>
+      <div id="banner" class="banner"></div>
+      <div id="stateBadge" class="stateBadge"></div>
+      <div id="mapOverlay" class="overlay hidden">
+        <div class="overlayCard">
+          <h2>Carte de l'appartement</h2>
+          <img src="assets/backgrounds/map.png" alt="Carte">
+          <p id="mapRoomText"></p>
+          <p class="soft center">Tab pour fermer</p>
+        </div>
+      </div>
+      <div id="journalOverlay" class="overlay hidden">
+        <div class="overlayCard narrow">
+          <h2>Journal</h2>
+          <div id="journalContent" class="journalContent"></div>
+          <p class="soft center">J ou Échap pour fermer</p>
+        </div>
+      </div>
+      <div id="noteOverlay" class="overlay hidden">
+        <div class="overlayCard narrow">
+          <h2 id="noteTitle">Note</h2>
+          <div id="noteBody" class="noteBody"></div>
+          <p class="soft center">Espace ou Échap pour fermer</p>
+        </div>
+      </div>
+      <div id="pauseOverlay" class="overlay hidden">
+        <div class="overlayCard small center">
+          <h2>Pause</h2>
+          <p>Échap pour reprendre</p>
+        </div>
+      </div>
+      <div id="gameOverOverlay" class="overlay hidden">
+        <div class="overlayCard small center">
+          <h2 id="gameOverTitle">Game Over</h2>
+          <p id="gameOverReason"></p>
+          <button id="backToMenuBtn" class="primary">Retour au menu</button>
+        </div>
+      </div>
+      <div id="nightClearOverlay" class="overlay hidden">
+        <div class="overlayCard small center">
+          <h2 id="nightClearTitle">Nuit terminée</h2>
+          <p id="nightClearText"></p>
+          <button id="nightContinueBtn" class="primary">Retour au menu</button>
+        </div>
+      </div>
+      <div id="debugPanel" class="debugPanel hidden">
+        <div class="debugHeader">Debug</div>
+        <div class="row three">
+          <button data-debug="brother">Forcer Ariel</button>
+          <button data-debug="yardena">Forcer Yardena</button>
+          <button data-debug="noa">Forcer Noa</button>
+        </div>
+        <div class="row three">
+          <button data-debug="stress">+ stress</button>
+          <button data-debug="calm">- stress</button>
+          <button data-debug="win">Gagner la nuit</button>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="js/app.js"></script>
+</body>
+</html>
