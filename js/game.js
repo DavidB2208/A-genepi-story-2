@@ -52,9 +52,7 @@
       this.showHitboxes = false;
       this.images = {};
       this.assetsReady = false;
-      this.loadAssets().then(() => {
-        this.assetsReady = true;
-      });
+      this.assetReport = null;
 
       this.input = { up: false, down: false, left: false, right: false, shift: false, e: false };
       this.interaction = { progress: 0, target: null };
@@ -144,7 +142,7 @@
       };
     }
 
-    loadAssets() {
+    async loadAssets(onProgress) {
       const imageMap = {
         hall: 'assets/backgrounds/hall.png',
         bedroom: 'assets/backgrounds/bedroom.png',
@@ -159,18 +157,65 @@
       };
 
       const entries = Object.entries(imageMap);
+      let loadedCount = 0;
+      let failedCount = 0;
+      const failedAssets = [];
+      const total = entries.length;
+
       const loaders = entries.map(([key, src]) => new Promise((resolve) => {
         const img = new Image();
-        img.onload = () => resolve([key, img]);
-        img.onerror = () => resolve([key, null]);
+
+        const finalize = (isSuccess) => {
+          if (isSuccess) loadedCount += 1;
+          else {
+            failedCount += 1;
+            failedAssets.push({ key, src });
+          }
+
+          if (typeof onProgress === 'function') {
+            onProgress({
+              loadedCount,
+              failedCount,
+              total,
+              progress: (loadedCount + failedCount) / total,
+              key,
+              ok: isSuccess,
+            });
+          }
+        };
+
+        img.onload = () => {
+          finalize(true);
+          resolve([key, img]);
+        };
+        img.onerror = () => {
+          finalize(false);
+          resolve([key, null]);
+        };
         img.src = src;
       }));
 
-      return Promise.all(loaders).then((loaded) => {
-        loaded.forEach(([key, img]) => {
-          this.images[key] = img;
-        });
+      const loaded = await Promise.all(loaders);
+      loaded.forEach(([key, img]) => {
+        this.images[key] = img;
       });
+
+      this.assetsReady = true;
+      this.assetReport = {
+        loadedCount,
+        failedCount,
+        total,
+        failedAssets,
+      };
+
+      if (failedCount > 0) {
+        console.warn(`[AGS] ${failedCount}/${total} assets non chargés. Fallbacks activés.`, failedAssets);
+      }
+      if (loadedCount === 0) {
+        console.warn('[AGS] Aucun asset chargé, démarrage en mode fallback complet.');
+      }
+
+      return this.assetReport;
     }
 
     bindKeys() {
@@ -240,7 +285,7 @@
     }
 
     togglePause() {
-      if (['menu', 'game_over', 'ending', 'night_transition'].includes(this.state)) return;
+      if (['boot', 'loading', 'menu', 'game_over', 'ending', 'night_transition'].includes(this.state)) return;
       this.state = this.state === 'paused' ? 'playing' : 'paused';
       this.ui.showOverlay('pause', this.state === 'paused');
     }
